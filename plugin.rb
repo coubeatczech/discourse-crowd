@@ -36,17 +36,9 @@ class CrowdAuthenticator < ::Auth::OAuth2Authenticator
     result.username = uid
     result.email = auth[:info].email
     result.email_valid = true
+    result.user = User.where(username: uid).first
 
-    current_info = ::PluginStore.get("crowd", "crowd_user_#{uid}")
-    if current_info
-      result.user = User.where(id: current_info[:user_id]).first
-    end
-    result.extra_data = { crowd_user_id: uid }
     result
-  end
-
-  def after_create_account(user, auth)
-    ::PluginStore.set("crowd", "crowd_user_#{auth[:extra_data][:crowd_user_id]}", {user_id: user.id })
   end
 
 end
