@@ -45,6 +45,23 @@ class CrowdAuthenticator < ::Auth::OAuth2Authenticator
       result.user.save
     end
 
+    crowd_info.groups.each do |group_name|
+      # ensure groups exists
+      begin
+        group = Group.lookup_group(group_name)
+      rescue
+        group = Group.new
+        group.name = group_name
+        group.visible = true
+        group.alias_level = 3
+        group.save
+      end
+      # ensure user is in the group
+      if !group.users.exists?(username: crowd_uid)
+        group.add(result.user)
+        group.save
+      end
+    end
 
     result
   end
