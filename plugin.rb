@@ -31,12 +31,20 @@ class CrowdAuthenticator < ::Auth::OAuth2Authenticator
   def after_authenticate(auth)
     result = Auth::Result.new
 
-    uid = auth[:uid]
-    result.name = auth[:info].name
-    result.username = uid
-    result.email = auth[:info].email
+    crowd_uid = auth[:uid]
+    crowd_info = auth[:info]
+
     result.email_valid = true
-    result.user = User.where(username: uid).first
+    result.user = User.where(username: crowd_uid).first
+
+    if (!result.user)
+      result.user = User.new
+      result.user.name = crowd_info.name
+      result.user.username = crowd_uid
+      result.user.email = crowd_info.email
+      result.user.save
+    end
+
 
     result
   end
